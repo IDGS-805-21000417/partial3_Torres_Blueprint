@@ -1,98 +1,60 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask import flash
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
-from flask import g
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from config import DevelopmentConfig
-
-from models import db
-from models import Alumnos
-
+from models import db, Usuarios
 import forms
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
-csrf=CSRFProtect()
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'),404
+csrf = CSRFProtect()
+db.init_app(app)
 
 
-@app.route("/",methods=['GET','POST'])
-@app.route("/index")
-def index():
-    create_form=forms.UserForm2(request.form)
-    
-    alumno=Alumnos.query.all()
-    
-    return render_template("index.html", form=create_form,alumnos=alumno)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'inicio' 
 
-@app.route("/detalles",methods=['GET','POST'])
-def detalles():
-    create_form=forms.UserForm2(request.form)
-    if request.method == 'GET':
-        id=request.args.get('id')
-        alum1=db.session.query(Alumnos).filter(Alumnos.id==id).first()
-        nom=alum1.nombre
-        ape=alum1.apaterno
-        email=alum1.email        
-    return render_template("detalles.html", form=create_form,nombre=nom, apaterno=ape, email=email)
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuarios.query.get(int(user_id))
 
-@app.route("/Alumnos1",methods=['GET','POST'])
-def Alumnos1():
-    create_form=forms.UserForm2(request.form)
-    if request.method=='POST':
-        alum=Alumnos(nombre=create_form.nombre.data,
-                     apaterno=create_form.apaterno.data,
-                     email=create_form.email.data)        
-        db.session.add(alum)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('Alumnos1.html',form=create_form)
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/index", methods=['GET', 'POST'])
+def inicio():
+    create_form = forms.inicioSesion(request.form)
 
-@app.route("/modificar",methods=['GET','POST'])
-def modificar():
-    create_form=forms.UserForm2(request.form)
-    if request.method=='GET':
-        id=request.args.get('id')        
-        alum1=db.session.query(Alumnos).filter(Alumnos.id==id).first()
-        create_form.id.data=request.args.get('id')
-        create_form.nombre.data=str.rstrip(alum1.nombre)
-        create_form.apaterno.data=alum1.apaterno
-        create_form.email.data=alum1.email
-    if request.method=='POST':
-        id=create_form.id.data
-        alum1=db.session.query(Alumnos).filter(Alumnos.id==id).first()
-        alum1.id=id
-        alum1.nombre=str.rstrip(create_form.nombre.data)
-        alum1.apaterno=create_form.apaterno.data
-        db.session.add(alum1)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('modificar.html',form=create_form)
+    if request.method == 'POST' and create_form.validate():
+        usu = create_form.usuario.data.strip()
+        pas = create_form.password.data.strip()
 
-@app.route("/eliminar", methods=['GET', 'POST'])
-def eliminar(): 
-    create_form=forms.UserForm2(request.form)
-    if request.method=='GET':
-        id=request.args.get('id')
-        alum1= db.session.query(Alumnos).filter(Alumnos.id==id).first()
-        create_form.id.data=request.args.get('id')
-        create_form.nombre.data=alum1.nombre
-        create_form.apaterno.data=alum1.apaterno
-        create_form.email.data=alum1.email
+        sesion = Usuarios.query.filter_by(usuario=usu, password=pas).first()
 
-    if request.method== 'POST':
-        id=create_form.id.data
-        alum=Alumnos.query.get(id)
-        db.session.delete(alum)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('eliminar.html',form=create_form)
+        if sesion:
+            login_user(sesion)
+            flash("Inicio de sesión exitoso.", "success")
+            return redirect(url_for('contenido'))
+        else:
+            flash("Usuario o contraseña incorrectos.", "danger")
+            return redirect(url_for('inicio'))
+
+    return render_template("index.html", form=create_form)
+
+@app.route("/contenido", methods=['GET', 'POST'])
+@login_required
+def contenido():
+    return render_template("contenido.html", usuario=current_user.usuario)
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Has cerrado sesión correctamente.", "info")
+    return redirect(url_for('inicio'))
 
 if __name__ == '__main__':
     csrf.init_app(app)
-    db.init_app(app)
     with app.app_context():
         db.create_all()
     app.run(debug=True)

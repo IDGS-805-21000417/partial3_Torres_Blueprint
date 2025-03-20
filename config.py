@@ -1,6 +1,4 @@
-import os 
 from sqlalchemy import create_engine
-import urllib
 
 class Config(object):
     SECRET_KEY='Clave nueva'
@@ -8,5 +6,5 @@ class Config(object):
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost/Alumnos'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost/sesion'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
