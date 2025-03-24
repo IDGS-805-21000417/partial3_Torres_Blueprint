@@ -33,7 +33,7 @@ def inicio():
 
         if sesion:
             login_user(sesion)
-            flash("Inicio de sesión exitoso.", "success")
+            flash("Inicio de sesion.", "success")
             return redirect(url_for('contenido'))
         else:
             flash("Usuario o contraseña incorrectos.", "danger")
@@ -44,13 +44,24 @@ def inicio():
 @app.route("/contenido", methods=['GET', 'POST'])
 @login_required
 def contenido():
-    return render_template("contenido.html", usuario=current_user.usuario)
+    create_form=forms.nuevoUsuario(request.form)
+    if request.method=='POST' and create_form.validate():
+        
+        reg=Usuarios(nombre=create_form.nombre.data,
+                     usuario=create_form.usuario.data,
+                     password=create_form.password.data)        
+        db.session.add(reg)
+        db.session.commit()
+        flash("Usuario registrado.", "success")
+        return redirect(url_for('contenido'))  
+      
+    return render_template("contenido.html", form=create_form,usuario=current_user.nombre)
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    flash("Has cerrado sesión correctamente.", "info")
+    flash("Fin de sesion.", "info")
     return redirect(url_for('inicio'))
 
 if __name__ == '__main__':
