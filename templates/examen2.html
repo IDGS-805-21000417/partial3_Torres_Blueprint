@@ -1,0 +1,67 @@
+{% extends "layout2.html" %}
+{% block container %}
+{% import "_macros.html" as macros %}
+
+<div class="container mx-auto mt-5">
+    <div class="flex justify-center">
+        <form method="POST" class="p-4 border rounded-lg bg-gray-100 w-full max-w-xl shadow-md" novalidate>
+            {{ form.csrf_token }}   
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />    
+            <input type="hidden" name="accion" value="of">            
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">                
+                <div class="col-span-2">
+                    <p class="font-semibold text-gray-700">Nombre: {{ current_user.nombre }} {{ current_user.apellidoP }} Grupo: {{ current_user.grupo }}</p>                    
+                </div>                
+            </div>                               
+        </form>
+    </div>
+
+    {% if alumno %}
+    <div class="mt-6">            
+        <h4 class="text-lg font-semibold text-gray-800">
+            Alumno: {{ alumno.nombre }} {{ alumno.apellidoP }} {{ alumno.apellidoM }}  
+            Grupo: {{ alumno.grupo }}  
+            Edad: {{ edad }}
+        </h4>
+
+        <h5 class="mt-4 text-lg font-semibold text-gray-800">Examen:</h5>
+        <form method="POST" class="mt-4" novalidate>
+            {{ form.csrf_token }}  
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />   
+            <input type="hidden" name="accion" value="on">                
+            <input type="hidden" name="nombre" value="{{ alumno.nombre }}">
+            <input type="hidden" name="apellidoP" value="{{ alumno.apellidoP }}">
+
+            {% for pregunta in preguntas %}
+            <div class="mb-6">
+                <p class="font-semibold text-gray-700">{{ pregunta.pregunta }}</p>
+                <div class="mt-2 space-y-2">
+                    <label class="flex items-center">
+                        <input type="radio" name="{{ pregunta.id }}" value="{{ pregunta.opcion1 }}" class="mr-2">
+                        {{ pregunta.opcion1 }}
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="{{ pregunta.id }}" value="{{ pregunta.opcion2 }}" class="mr-2">
+                        {{ pregunta.opcion2 }}
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="{{ pregunta.id }}" value="{{ pregunta.opcion3 }}" class="mr-2">
+                        {{ pregunta.opcion3 }}
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="{{ pregunta.id }}" value="{{ pregunta.opcion4 }}" class="mr-2">
+                        {{ pregunta.opcion4 }}
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition">
+                Enviar
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "layout2.html" %}
+{% block container %}
+{% import "_macros.html" as macros %}
+
+<div class="container mx-auto mt-5">
+    <div class="flex justify-center">
+        <form method="POST" novalidate class="p-4 border rounded-lg bg-gray-100 w-full max-w-lg shadow-md">
+            {{ form.csrf_token }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">                
+                <div>
+                    <p class="font-semibold text-gray-700">Grupo: {{ current_user.grupo }}</p>
+                </div>                
+            </div>                               
+        </form>
+    </div>
+
+    <div class="mt-6">
+        <table class="w-full border-collapse border border-gray-300 shadow-md">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="p-3 border border-gray-300">Nombre</th>                                        
+                    <th class="p-3 border border-gray-300">Grupo</th>
+                    <th class="p-3 border border-gray-300">Calificación</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white">
+                {% for alum in alumnos %}
+                <tr class="hover:bg-gray-100">
+                    <td class="p-3 border border-gray-300">{{ alum.nombre }} {{ alum.apellidoP }} {{ alum.apellidoM }}</td>                                        
+                    <td class="p-3 border border-gray-300">{{ alum.grupo }}</td>
+                    <td class="p-3 border border-gray-300">{{ alum.calificacion }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
